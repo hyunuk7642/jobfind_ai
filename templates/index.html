@@ -314,6 +314,18 @@
 
         <div class="content">
             <div class="name-section">
+                <h3>🔑 사용할 AI API 키를 입력하세요</h3>
+                <input type="text" id="apiKey" name="apiKey" placeholder="OpenAI 또는 Google Gemini API 키" required class="name-input" style="margin-bottom:15px;">
+                <div style="margin: 15px 0 0 0;">
+                  <label style="margin-right: 20px; font-weight:500;">
+                    <input type="radio" name="model" value="gpt" checked> GPT (OpenAI)
+                  </label>
+                  <label style="font-weight:500;">
+                    <input type="radio" name="model" value="gemini"> Gemini (Google)
+                  </label>
+                </div>
+            </div>
+            <div class="name-section">
                 <h3>👋 당신의 이름을 알려주세요</h3>
                 <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요" required class="name-input">
             </div>
@@ -406,6 +418,14 @@
                 alert('이름을 입력해주세요!');
                 return;
             }
+            // API 키 확인
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('API 키를 입력해주세요!');
+                return;
+            }
+            // 모델 선택
+            const model = document.querySelector('input[name="model"]:checked').value;
             
             const answers = [];
             for (let i = 0; i < 20; i++) {
@@ -431,7 +451,9 @@
                     },
                     body: JSON.stringify({ 
                         answers: answers,
-                        userName: userName
+                        userName: userName,
+                        apiKey: apiKey,
+                        model: model
                     })
                 });
 

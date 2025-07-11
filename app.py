@@ -46,12 +46,14 @@ def analyze():
         data = request.get_json()
         answers = data.get('answers', [])
         user_name = data.get('userName', '학생')
+        api_key = data.get('apiKey', None)
+        model = data.get('model', 'gpt')
         
         if len(answers) != 20:
             return jsonify({'error': '모든 질문에 답변해주세요.'}), 400
         
-        # GPT-4o를 사용하여 직업 추천
-        recommendation = get_job_recommendation(answers, user_name)
+        # 선택한 모델에 따라 직업 추천
+        recommendation = get_job_recommendation(answers, user_name, api_key, model)
         
         # 결과 페이지로 리다이렉트
         import urllib.parse
@@ -73,16 +75,16 @@ def analyze():
 def result():
     return render_template('result.html')
 
-def get_job_recommendation(answers, user_name):
-    """GPT-4o를 사용하여 답변을 바탕으로 직업을 추천합니다."""
-    
-    # 답변을 문자열로 변환
+def get_job_recommendation(answers, user_name, api_key, model):
+    """선택한 AI 모델로 답변을 바탕으로 직업을 추천합니다."""
+    if model == 'gemini':
+        return f"[Gemini(Google) 지원 안내]\n\n아직 Gemini(Google) API 연동은 준비 중입니다. 곧 지원될 예정입니다!\n\n지금은 GPT(OpenAI) 모델을 선택해 사용해 주세요."
+    # OpenAI GPT-4o 사용
+    import openai
+    openai.api_key = api_key
     answers_text = "\n".join([f"질문 {i+1}: {answer}" for i, answer in enumerate(answers)])
-    
-    # 답변 수준 분석 (50점 척도)
     answer_levels = [int(answer) for answer in answers]
     levels_text = "\n".join([f"질문 {i+1}: {level}점" for i, level in enumerate(answer_levels)])
-    
     prompt = f"""
 당신은 고등학생들의 진로 상담을 도와주는 전문적인 상담사입니다.
 {user_name} 학생이 직업 탐색을 위해 답변한 20개 질문을 분석하여 맞춤형 직업을 추천해드리겠습니다.
@@ -185,7 +187,6 @@ def get_job_recommendation(answers, user_name):
 - 한국의 실제 직업 시장과 관련된 현실적인 직업을 추천
 - {user_name} 학생을 직접 호명하며 친근하고 격려하는 톤으로 답변
 """
-    
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -196,9 +197,7 @@ def get_job_recommendation(answers, user_name):
             max_tokens=2000,
             temperature=0.7
         )
-        
         return response.choices[0].message.content.strip()
-    
     except Exception as e:
         return f"죄송합니다. 분석 중 오류가 발생했습니다: {str(e)}"
 
